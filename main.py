@@ -17,6 +17,7 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from flask_socketio import join_room, leave_room, send, SocketIO
 import random
 from string import ascii_uppercase  
+import base64
 
 # Initialize Flask app - Reasearch for further information
 app = Flask(__name__) # __name__ represent name of Python module
@@ -118,6 +119,31 @@ def disconnect():
 
     send( {"name": name, "message": "has left the room"}, to=room)
     print(f"{name} has left the room {room}")
+
+@socketio.on("file")
+def file(data):
+    room = session.get("room")
+    if room not in rooms:
+        return
+    
+    sender_name = session.get("name")
+    file_name = data["fileName"]
+    file_type = data["fileType"]
+    file_data = data["data"]
+
+    content = {
+        "name": sender_name,
+        "message": f"sent a file - {file_name}",
+        "file": {
+            "name": file_name,
+            "type": file_type,
+            "data": file_data
+        }
+    }
+
+    send(content, to=room)
+    rooms[room]["messages"].append(content)
+    print(f"{sender_name} sent a file: {file_name}")
 
 
 

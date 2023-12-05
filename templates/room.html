@@ -1,36 +1,62 @@
 {% extends 'base.html' %} 
 {% block content %}
+
+<body class="background" style="font-family: Lucida Console, Courier New, monospace;">
 <div class="message-box">
-    <h2>Chat Room: {{code}}</h2>
+    <h2 class="header" style="color:black">Chat Room: {{code}}</h2>
     <div class="messages" id="messages"></div>
     <div class="inputs">
         <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
-        <button type="button" name="send" id="send-btn" onClick="sendMessage()">
+        <input type="file" id="fileInput" class="upload_btn"/>
+        <button type="button" name="send" id="send-btn" onClick="sendMessage()" class="button2">
             Send
+        </button>
+        <button type="button" name="attach" id="attach-btn" class="button1">
+            Attach File
         </button>
     </div>
 </div>
+</body>
 <script type="text/javascript">
     var socketio = io();
 
     const messages = document.getElementById("messages");
 
-    const createMessage = (name, msg) => {
-        const content = `
+    const createMessage = (name, msg, file) => {
+        let content = `
         <div class="text">
             <span>
                 <strong>${name}</strong>: ${msg}
+        `;
+
+        if (file) {
+            const { fileName, fileData } = file;
+            content += `<br/><a href="${fileData}" download>${fileName}</a>`;
+        }
+
+        content += `
             </span>
             <span class="muted">
                 ${new Date().toLocaleString()}
             </span>
         </div>
         `;
+
         messages.innerHTML += content;
     };
 
     socketio.on("message", (data) => {
         createMessage(data.name, data.message);
+    });
+
+    socketio.on("file", (data) => {
+        const senderName = data.name;
+        const fileName = data.file.name;
+        const fileType = data.file.type;
+        const fileData = data.file.data;
+
+        createMessage(senderName, "Open file", { fileName, fileData });
+
     });
 
     const sendMessage = () => {
@@ -39,6 +65,34 @@
         socketio.emit("message", {data: message.value});
         message.value = "";
     };
+
+    const attachBtn = document.getElementById('attach-btn');
+    const fileInput = document.getElementById('fileInput');
+
+    attachBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const fileData = e.target.result;
+                const fileInfo = {
+                    fileName: file.name,
+                    fileType: file.type,
+                    data: fileData,
+                };
+
+                socketio.emit('file', fileInfo);
+            };
+
+            reader.readAsDataURL(file);
+        }
+        fileInput.value = "";
+    });
 </script>
 
 {% for msg in messages %}
