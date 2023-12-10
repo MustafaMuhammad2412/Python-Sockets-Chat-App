@@ -148,5 +148,5 @@ def file(data):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True) #debug=True will let changes made to webserver update automatically
+    socketio.run(app, host='192.168.0.170', port=5000, debug=True) #debug=True will let changes made to webserver update automatically
 

@@ -7,18 +7,18 @@
     <div class="messages" id="messages"></div>
     <div class="inputs">
         <input type="text" rows="3" placeholder="Message" name="message" id="message"/>
-        <input type="file" id="fileInput" class="upload_btn"/>
         <button type="button" name="send" id="send-btn" onClick="sendMessage()" class="button2">
             Send
         </button>
         <button type="button" name="attach" id="attach-btn" class="button1">
             Attach File
         </button>
+        <input type="file" id="fileInput" class="upload_btn" style="display: none;"/>
     </div>
 </div>
 </body>
 <script type="text/javascript">
-    var socketio = io();
+    var socketio = io.connect('http://192.168.0.170:5000');
 
     const messages = document.getElementById("messages");
 
